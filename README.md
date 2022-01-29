@@ -204,7 +204,7 @@ The state of your hook should live either inside your hook or inside the context
 If you make use of the `useContext` hook, then creating a contextual object can be done like this:
 
 ```typescript
-import { Context, createKey, useContext } from "./hooks/useContext";
+import { Context, createKey, useContext } from "@robicue/use-context";
 
 const counterStateKey = createKey("myApp", "useCounterHook", "counterState");
 
