@@ -1,7 +1,7 @@
 {
-  "name": "use-context",
+  "name": "@robicue/use-context",
   "version": "1.0.0",
-  "description": "The official useContext implementation for the Robicue hook architecture",
+  "description": "The official useContext implementation for the Robicue Hook Architecture",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -9,7 +9,6 @@
     "test": "mocha --require ts-node/register --watch --watch-files ., ./src/**/*.test.ts"
   },
   "license": "MIT",
-  "private": false,
   "devDependencies": {
     "@types/chai": "^4.2.18",
     "@types/mocha": "^8.2.2",
@@ -31,5 +30,6 @@
   "bugs": {
     "url": "https://github.com/Robicue/use-context/issues"
   },
-  "homepage": "https://github.com/Robicue/use-context#readme"
+  "homepage": "https://github.com/Robicue/use-context#readme",
+  "types": "./dist/index.d.ts"
 }
