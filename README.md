@@ -73,7 +73,7 @@ For example, contexts can be created on the level of an HTTP request. If your ap
 
 ### Easy to mock and test
 
-Suppose you want to create a test scenario for your code that applies withing a specific time period. If all your hooks rely on some time provider hook, you can write that hook in such a way that the current time can be overruled. Because that rule would be applied on context level, it is easy to make an individual unit test that does not interfere with the time period of other concurrent running tests.
+Suppose you want to create a test scenario for your code that applies within a specific time period. If all your hooks rely on some time provider hook, you can write that hook in such a way that the current time can be overruled. Because that rule would be applied on context level, it is easy to make an individual unit test that does not interfere with the time period of other concurrent running tests.
 
 ## The `useContext` hook
 
