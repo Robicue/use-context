@@ -1,8 +1,6 @@
 # An architecture of hooks
 
-`28 January 2022`
-
----
+Read our [original documentation](https://docs.robicue.com/#knowledge/hooks) to stay up to date.
 
 In the products we develop, we often use a hook function architecture.
 They are inspired by the React hooks, but the concept has been made more abstract and usable for both backend and frontend development.
