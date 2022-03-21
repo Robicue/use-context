@@ -17,6 +17,11 @@ export type Context = { [MAGIC_DATA_TOKEN]: unknown };
 export type Key = unknown;
 
 /**
+ * Holds the created keys to warn about duplications
+ */
+const usedKeys = new Set<Key>();
+
+/**
  * Use this function to create a distinguishable
  * key for a contextual state.
  */
@@ -25,7 +30,14 @@ export const createKey = (
   hook: string,
   name: string
 ): Key => {
-  return `${namespace}/${hook}/${name}`;
+  const key = `${namespace}/${hook}/${name}`;
+  if (usedKeys.has(key)) {
+    throw new Error(
+      `The context key '${key}' is already created somewhere else`
+    );
+  }
+  usedKeys.add(key);
+  return key;
 };
 
 /**

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { useContext } from "./useContext";
+import { createKey, useContext } from "./useContext";
 
 describe("useContext hook tests", () => {
   it("fork context", () => {
@@ -20,5 +20,15 @@ describe("useContext hook tests", () => {
     expect(forkedContextUtils.use("keyA")).to.equal("valueA");
     expect(forkedContextUtils.isAvailable("keyB")).to.equal(true);
     expect(forkedContextUtils.use("keyB")).to.equal("valueB");
+  });
+
+  it("duplicate key error", () => {
+    try {
+      createKey("use-context", "useContext", "test");
+      createKey("use-context", "useContext", "test");
+      expect.fail("Duplicate key error not thrown");
+    } catch (ex: any) {
+      expect(ex?.message).to.equal("The context key 'use-context/useContext/test' is already created somewhere else");
+    }
   });
 });
