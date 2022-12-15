@@ -83,6 +83,13 @@ export const useContext = (context?: Context) => {
     },
 
     /**
+     * Sets a new value in the current context.
+     */
+    set<T>(key: Key, value: T) {
+      return map.set(key, value);
+    },
+
+    /**
      * Accesses the contextual state related to the specified key.
      * If the state does not exist yet, the result of the initializer
      * will be set and returned.
