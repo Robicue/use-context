@@ -1,34 +1,58 @@
 import { expect } from "chai";
-import { createKey, useContext } from "./useContext";
+import { isContext, useContext } from "./useContext";
 
 describe("useContext hook tests", () => {
   it("fork context", () => {
-    const rootContextUtils = useContext();
-    rootContextUtils.use("keyA", () => "valueA");
+    const iA = () => ({ value: "A" });
+    const iB = () => ({ value: "B" });
+    const iC = () => ({ value: "C" });
 
-    const forkedContext = rootContextUtils.fork();
-    const forkedContextUtils = useContext(forkedContext);
-    forkedContextUtils.use("keyB", () => "valueB");
+    const context = useContext();
 
-    // Test root context
-    expect(rootContextUtils.isAvailable("keyA")).to.equal(true);
-    expect(rootContextUtils.use("keyA")).to.equal("valueA");
-    expect(rootContextUtils.isAvailable("keyB")).to.equal(false);
+    expect(context.isUsed(iA)).to.equal(false);
+    expect(context.use(iA).value).to.equal("A");
+    expect(context.isUsed(iA)).to.equal(true);
 
-    // Test forked context
-    expect(forkedContextUtils.isAvailable("keyA")).to.equal(true);
-    expect(forkedContextUtils.use("keyA")).to.equal("valueA");
-    expect(forkedContextUtils.isAvailable("keyB")).to.equal(true);
-    expect(forkedContextUtils.use("keyB")).to.equal("valueB");
+    context.use(iA).value = "D";
+
+    expect(context.use(iA).value).to.equal("D");
+    expect(context.use(iB).value).to.equal("B");
+
+    // Test forks
+
+    const forkedContext = useContext(context.fork());
+
+    expect(forkedContext.isUsed(iA)).to.equal(true);
+    expect(forkedContext.use(iA).value).to.equal("D");
+
+    expect(context.isUsed(iC)).to.equal(false);
+    expect(context.use(iC).value).to.equal("C");
+    expect(context.isUsed(iC)).to.equal(true);
+
+    expect(forkedContext.isUsed(iC)).to.equal(false);
+    expect(forkedContext.use(iC).value).to.equal("C");
+    expect(forkedContext.isUsed(iC)).to.equal(true);
+
+    context.use(iA).value = "E";
+    context.use(iC).value = "F";
+
+    forkedContext.use(iB).value = "G";
+    forkedContext.use(iC).value = "H";
+
+    expect(context.use(iA).value).to.equal("E");
+    expect(context.use(iB).value).to.equal("G");
+    expect(context.use(iC).value).to.equal("F");
+
+    expect(forkedContext.use(iA).value).to.equal("E");
+    expect(forkedContext.use(iB).value).to.equal("G");
+    expect(forkedContext.use(iC).value).to.equal("H");
   });
 
-  it("duplicate key error", () => {
-    try {
-      createKey("use-context", "useContext", "test");
-      createKey("use-context", "useContext", "test");
-      expect.fail("Duplicate key error not thrown");
-    } catch (ex: any) {
-      expect(ex?.message).to.equal("The context key 'use-context/useContext/test' is already created somewhere else");
-    }
+  it("is context", () => {
+    const value = {};
+
+    expect(isContext(value)).to.equal(false);
+    useContext(value);
+    expect(isContext(value)).to.equal(true);
   });
 });

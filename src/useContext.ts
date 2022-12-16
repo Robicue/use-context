@@ -1,50 +1,44 @@
-const MAGIC_DATA_TOKEN = "__context_container__";
-const VERSION = "1.0.0";
+/**
+ * The context type
+ */
+export type Context = object;
 
 /**
- * All the data of our context is stored inside a property with a
- * long name that starts and ends with two underscores.
- * This is to indicate that the context data should never be accessed directly.
+ * A simple hook type
  */
-export type Context = { [MAGIC_DATA_TOKEN]: unknown };
+export type Hook<T = unknown> = (context: Context) => T;
 
 /**
- * We deliberately did not make the key of type 'string', to encourage the
- * use of the createKey. The createKey function ensures a better naming
- * convention by splitting the key into 3 parts: namespace, hook name, and
- * a name for the state.
+ * Holds all the contexts;
  */
-export type Key = unknown;
-
-/**
- * Holds the created keys to warn about duplications
- */
-const usedKeys = new Set<Key>();
-
-/**
- * Use this function to create a distinguishable
- * key for a contextual state.
- */
-export const createKey = (
-  namespace: string,
-  hook: string,
-  name: string
-): Key => {
-  const key = `${namespace}/${hook}/${name}`;
-  if (usedKeys.has(key)) {
-    throw new Error(
-      `The context key '${key}' is already created somewhere else`
-    );
-  }
-  usedKeys.add(key);
-  return key;
-};
+const contexts = new WeakMap<Context, Map<unknown, unknown>>();
 
 /**
  * Checks if the provided value is a valid context object.
  */
-export const isContext = (value: unknown) => {
-  return !!(value as Context)[MAGIC_DATA_TOKEN];
+export const isContext = (value: Context) => {
+  return contexts.has(value);
+};
+
+/**
+ * Creates a hook function
+ */
+export const hook = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): ((context: Context, ...args: A) => R) => {
+  return func;
+};
+
+/**
+ * @param context Gets the map for the specified context.
+ */
+const getContextMap = (context: Context) => {
+  let map = contexts.get(context);
+  if (!map) {
+    map = new Map();
+    contexts.set(context, map);
+  }
+  return map;
 };
 
 /**
@@ -53,59 +47,39 @@ export const isContext = (value: unknown) => {
  * - create a fork of a context
  * - get or initialize a contextual state
  */
-export const useContext = (context?: Context) => {
-  let map: Map<Key, unknown>;
+export const useContext = (context: Context = {}) => {
+  const map = getContextMap(context);
 
-  if (context) {
-    map = context[MAGIC_DATA_TOKEN] as Map<Key, unknown>;
-    if (!map) {
-      throw "An invalid context object has been provided";
-    }
-  } else {
-    map = new Map();
-    context = {
-      [MAGIC_DATA_TOKEN]: map,
-      __context_version__: VERSION,
-    } as Context;
-  }
-
-  return {
+  const self = {
     /**
      * The current context object.
      */
     context,
 
     /**
-     * Returns TRUE if the specified key is not used in the context yet.
+     * Returns TRUE if the specified initializer is used in the context.
      */
-    isAvailable(key: Key) {
-      return map.has(key);
+    isUsed(initializer: Hook) {
+      return map.has(initializer);
     },
 
     /**
-     * Sets a new value in the current context.
+     * Initializes a new state into the context
      */
-    set<T>(key: Key, value: T) {
-      return map.set(key, value);
-    },
-
-    /**
-     * Accesses the contextual state related to the specified key.
-     * If the state does not exist yet, the result of the initializer
-     * will be set and returned.
-     */
-    use<T>(key: Key, initializer?: () => T) {
-      if (map.has(key)) {
-        return map.get(key) as T;
-      }
-
-      if (!initializer) {
-        throw `No context data available for '${key}'`;
-      }
-
-      const value = initializer();
-      map.set(key, value);
+    init<T>(initializer: Hook<T>) {
+      const value = initializer(context);
+      map.set(initializer, value);
       return value;
+    },
+
+    /**
+     * Uses or initializes a state in the context
+     */
+    use<T>(initializer: Hook<T>) {
+      if (map.has(initializer)) {
+        return map.get(initializer) as T;
+      }
+      return self.init(initializer);
     },
 
     /**
@@ -115,10 +89,11 @@ export const useContext = (context?: Context) => {
      * in the forked context, are not seen by hooks using the current context.
      */
     fork() {
-      return {
-        ...context,
-        [MAGIC_DATA_TOKEN]: new Map(map),
-      } as Context;
+      const forkedContext = { ...context };
+      contexts.set(forkedContext, new Map(map));
+      return forkedContext;
     },
   };
+
+  return self;
 };
