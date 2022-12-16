@@ -14,6 +14,19 @@ export type Hook<A extends unknown[], R> = (context: Context, ...args: A) => R;
 const contexts = new WeakMap<Context, Map<Hook<any, unknown>, unknown>>();
 
 /**
+ * Holds all the contexts with unforkable states
+ */
+const contextsUnforkable = new WeakMap<
+  Context,
+  Map<Hook<any, unknown>, unknown>
+>();
+
+/**
+ * Holds all the unforkable initializers.
+ */
+const unforkables = new WeakSet<Hook<any, unknown>>();
+
+/**
  * Checks if the provided value is a valid context object
  */
 export const isContext = (value: Context) => {
@@ -26,6 +39,16 @@ export const isContext = (value: Context) => {
 export const hook = <A extends unknown[], R>(
   func: (context: Context, ...args: A) => R
 ): ((context: Context, ...args: A) => R) => {
+  return func;
+};
+
+/**
+ * Creates an unforkable hook function
+ */
+export const unforkable = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): ((context: Context, ...args: A) => R) => {
+  unforkables.add(func);
   return func;
 };
 
@@ -54,13 +77,34 @@ const getContextMap = (context: Context) => {
 };
 
 /**
+ * Gets the map with unforkable states for the specified context
+ */
+const getUnforkableContextMap = (context: Context) => {
+  let map = contextsUnforkable.get(context);
+  if (!map) {
+    map = new Map();
+    contexts.set(context, map);
+  }
+  return map;
+};
+
+/**
  * Major hook that can be used to:
  * - create a new context
  * - create a fork of a context
  * - get or initialize a contextual state
  */
 export const useContext = (context: Context = {}) => {
-  const map = getContextMap(context);
+  const mapForkable = getContextMap(context);
+  const mapUnforkable = getUnforkableContextMap(context);
+
+  const getMap = <A extends unknown[], R>(initializer: Hook<A, R>) => {
+    if (unforkables.has(initializer)) {
+      return mapUnforkable;
+    } else {
+      return mapForkable;
+    }
+  };
 
   const self = {
     /**
@@ -72,7 +116,7 @@ export const useContext = (context: Context = {}) => {
      * Returns TRUE if the specified initializer is used in the context
      */
     isUsed<A extends unknown[], R>(initializer: Hook<A, R>) {
-      return map.has(initializer);
+      return getMap(initializer).has(initializer);
     },
 
     /**
@@ -80,7 +124,7 @@ export const useContext = (context: Context = {}) => {
      */
     init<A extends unknown[], R>(initializer: Hook<A, R>, ...args: A) {
       const value = initializer(context, ...args);
-      map.set(initializer, value);
+      getMap(initializer).set(initializer, value);
       return value;
     },
 
@@ -88,6 +132,7 @@ export const useContext = (context: Context = {}) => {
      * Uses or initializes a state in the context
      */
     use<A extends unknown[], R>(initializer: Hook<A, R>, ...args: A) {
+      const map = getMap(initializer);
       if (map.has(initializer)) {
         return map.get(initializer) as R;
       }
@@ -98,6 +143,7 @@ export const useContext = (context: Context = {}) => {
      * Gets a state that has already been initialized
      */
     get<A extends unknown[], R>(initializer: Hook<A, R>) {
+      const map = getMap(initializer);
       if (!map.has(initializer)) {
         throw new Error("Not yet initialized");
       }
@@ -112,7 +158,7 @@ export const useContext = (context: Context = {}) => {
      */
     fork() {
       const forkedContext: Context = { ...context };
-      contexts.set(forkedContext, new Map(map));
+      contexts.set(forkedContext, new Map(mapForkable));
       return forkedContext;
     },
   };
