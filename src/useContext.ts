@@ -9,12 +9,12 @@ export type Context = object;
 export type Hook<A extends unknown[], R> = (context: Context, ...args: A) => R;
 
 /**
- * Holds all the contexts;
+ * Holds all the contexts
  */
 const contexts = new WeakMap<Context, Map<Hook<any, unknown>, unknown>>();
 
 /**
- * Checks if the provided value is a valid context object.
+ * Checks if the provided value is a valid context object
  */
 export const isContext = (value: Context) => {
   return contexts.has(value);
@@ -30,7 +30,19 @@ export const hook = <A extends unknown[], R>(
 };
 
 /**
- * Gets the map for the specified context.
+ * Creates a hook that memorizes the result in the context
+ */
+export const anchor = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): ((context: Context, ...args: A) => R) => {
+  return (context, ...args) => {
+    const { use } = useContext(context);
+    return use(func, ...args);
+  };
+};
+
+/**
+ * Gets the map for the specified context
  */
 const getContextMap = (context: Context) => {
   let map = contexts.get(context);
@@ -57,7 +69,7 @@ export const useContext = (context: Context = {}) => {
     context,
 
     /**
-     * Returns TRUE if the specified initializer is used in the context.
+     * Returns TRUE if the specified initializer is used in the context
      */
     isUsed<A extends unknown[], R>(initializer: Hook<A, R>) {
       return map.has(initializer);
