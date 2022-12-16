@@ -11,7 +11,7 @@ export type Hook<A extends unknown[], R> = (context: Context, ...args: A) => R;
 /**
  * Holds all the contexts;
  */
-const contexts = new WeakMap<Context, Map<unknown, unknown>>();
+const contexts = new WeakMap<Context, Map<Hook<any, unknown>, unknown>>();
 
 /**
  * Checks if the provided value is a valid context object.
@@ -80,6 +80,16 @@ export const useContext = (context: Context = {}) => {
         return map.get(initializer) as R;
       }
       return self.init(initializer, ...args);
+    },
+
+    /**
+     * Gets a state that has already been initialized
+     */
+    get<A extends unknown[], R>(initializer: Hook<A, R>) {
+      if (!map.has(initializer)) {
+        throw new Error("Not yet initialized");
+      }
+      return map.get(initializer) as R;
     },
 
     /**
