@@ -111,7 +111,7 @@ export const useContext = (context: Context = {}) => {
      * in the forked context, are not seen by hooks using the current context.
      */
     fork() {
-      const forkedContext = { ...context };
+      const forkedContext: Context = { ...context };
       contexts.set(forkedContext, new Map(map));
       return forkedContext;
     },
