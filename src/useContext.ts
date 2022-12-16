@@ -6,7 +6,7 @@ export type Context = object;
 /**
  * A simple hook type
  */
-export type Hook<T = unknown> = (context: Context) => T;
+export type Hook<A extends unknown[], R> = (context: Context, ...args: A) => R;
 
 /**
  * Holds all the contexts;
@@ -30,7 +30,7 @@ export const hook = <A extends unknown[], R>(
 };
 
 /**
- * @param context Gets the map for the specified context.
+ * Gets the map for the specified context.
  */
 const getContextMap = (context: Context) => {
   let map = contexts.get(context);
@@ -59,15 +59,15 @@ export const useContext = (context: Context = {}) => {
     /**
      * Returns TRUE if the specified initializer is used in the context.
      */
-    isUsed(initializer: Hook) {
+    isUsed<A extends unknown[], R>(initializer: Hook<A, R>) {
       return map.has(initializer);
     },
 
     /**
      * Initializes a new state into the context
      */
-    init<T>(initializer: Hook<T>) {
-      const value = initializer(context);
+    init<A extends unknown[], R>(initializer: Hook<A, R>, ...args: A) {
+      const value = initializer(context, ...args);
       map.set(initializer, value);
       return value;
     },
@@ -75,11 +75,11 @@ export const useContext = (context: Context = {}) => {
     /**
      * Uses or initializes a state in the context
      */
-    use<T>(initializer: Hook<T>) {
+    use<A extends unknown[], R>(initializer: Hook<A, R>, ...args: A) {
       if (map.has(initializer)) {
-        return map.get(initializer) as T;
+        return map.get(initializer) as R;
       }
-      return self.init(initializer);
+      return self.init(initializer, ...args);
     },
 
     /**
