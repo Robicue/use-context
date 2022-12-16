@@ -92,7 +92,7 @@ const getUnforkableContextMap = (context: Context) => {
   let map = contextsUnforkable.get(context);
   if (!map) {
     map = new Map();
-    contexts.set(context, map);
+    contextsUnforkable.set(context, map);
   }
   return map;
 };
