@@ -67,7 +67,7 @@ export const anchor = <A extends unknown[], R>(
 /**
  * Creates an hook that memorizes the result in the unforkable context
  */
-export const unforkableAnchor = <A extends unknown[], R>(
+export const buoy = <A extends unknown[], R>(
   func: (context: Context, ...args: A) => R
 ): ((context: Context, ...args: A) => R) => {
   return anchor(unforkable(func));
