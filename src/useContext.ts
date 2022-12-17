@@ -74,7 +74,7 @@ export const unforkableAnchor = <A extends unknown[], R>(
 };
 
 /**
- * Gets the map for the specified context
+ *  Gets the map with forkable states for the specified context
  */
 const getContextMap = (context: Context) => {
   let map = contexts.get(context);
@@ -160,13 +160,15 @@ export const useContext = (context: Context = {}) => {
     },
 
     /**
-     * Makes a fork of the current context.
+     * Makes a fork of all forkable states the current context.
      * The forked context allows you to keep access to the states
      * of the current context, but newly initialized states, created
      * in the forked context, are not seen by hooks using the current context.
      */
-    fork() {
-      const forkedContext: Context = { ...context };
+    fork(forkedContext: Context = { ...context }) {
+      if (contexts.has(forkedContext)) {
+        throw new Error("The forked context is already in use");
+      }
       contexts.set(forkedContext, new Map(mapForkable));
       return forkedContext;
     },
