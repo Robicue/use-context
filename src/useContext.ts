@@ -48,8 +48,11 @@ export const hook = <A extends unknown[], R>(
 export const unforkable = <A extends unknown[], R>(
   func: (context: Context, ...args: A) => R
 ): ((context: Context, ...args: A) => R) => {
-  unforkables.add(func);
-  return func;
+  const unforkableFunc: typeof func = (context, ...args) => {
+    return func(context, ...args);
+  };
+  unforkables.add(unforkableFunc);
+  return unforkableFunc;
 };
 
 /**
