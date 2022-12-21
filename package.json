@@ -1,6 +1,6 @@
 {
   "name": "@robicue/use-context",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "The official useContext implementation for the Robicue Hook Architecture",
   "main": "dist/index.js",
   "scripts": {
@@ -30,6 +30,6 @@
   "bugs": {
     "url": "https://github.com/Robicue/use-context/issues"
   },
-  "homepage": "https://docs.robicue.com/#knowledge/hooks",
+  "homepage": "https://github.com/Robicue/use-contexts",
   "types": "./dist/index.d.ts"
 }

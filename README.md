@@ -1,7 +1,10 @@
 # An architecture of hooks
 
-In the products we develop, we often use a hook function architecture.
-They are inspired by the React hooks, but the concept has been made more abstract and usable for both backend and frontend development.
+Overcome a dependency nightmare by using the simplicity of contextual hook functions. No complex dependency injection frameworks, just simple functions.
+
+## About this package
+
+This package provides you the core functions for integrating a hook function architecture in your projects. We have been using this architecture in many of our projects and found out that developers like it because of its simplicity and modularity. They are inspired by the React hooks, but the concept has been made more abstract and usable for both backend and frontend development.
 
 ## What is a hook?
 
@@ -92,7 +95,7 @@ The state of your hook should live either inside your hook or inside the context
 If you make use of the `useContext` hook, then creating a contextual object can be done like this:
 
 ```typescript
-import { Context, createKey, useContext } from "@robicue/use-context";
+import { Context, useContext } from "@robicue/use-context";
 
 const counterState = () => ({ value: 0 });
 
@@ -118,10 +121,64 @@ export const useCounterHook = (context: Context) => {
 };
 ```
 
+Since version 1.0.10 there is the `anchor` helper function that allows you to create a hook that remembers the return value of the hook within the context.
+This also means that the function will only be called once per context.
+
+The above example would then be implemented like this:
+
+```typescript
+import { anchor } from "@robicue/use-context";
+
+export const useCounterHook = anchor((context) => {
+  let counterValue = 0;
+
+  return {
+    increase() {
+      counterValue++;
+    },
+    decrease() {
+      counterValue--;
+    },
+  };
+});
+```
+
+Keep in mind that the return value will also be remembered for forked contexts. If you do not want this, you can use the `buoy` function instead of `anchor`.
+
 ## How to create a new context?
 
-Most contexts are just created at very specific places in the application and then passed from one hook to another. If you are using the `useContext` example code above, a new context can be created by using the hook without specifying any parameter:
+Most contexts are just created at very specific places in the application and then passed from one hook to another. If you use this package, a new context can be created by using the `useContext` hook without specifying a parameter:
 
 ```typescript
 const { context: yourNewContext } = useContext();
 ```
+
+## What is context forking?
+
+The use-context package allows you to fork a context. Forking is useful when you need to keep the existing state of a context, but want all new states to be stored in a different context.
+
+This can, for example, be useful for authentication if you do not want the permissions of a user to conflict with those of other logged in users that are using the same parent context.
+
+```typescript
+import { Context, useContext } from "@robicue/use-context";
+
+const useAuthState = anchor((username) => ({ currentUser: username }));
+
+export const useAuthentication = (context: Context) => {
+  const { use, fork } = useContext(context);
+
+  const counterState = use(counterState);
+
+  return {
+    login(username: string, password: string) {
+      if(isValidLogin(username, password)) {
+        const forkedContext = fork();
+        useAuthState(forkedContext, username);
+        return forkedContext;
+      }
+    }
+  };
+};
+```
+
+Be aware that forking does not make deep copies of the states in the context. This means that objects that were already present in a parent contexts have the same reference in their forked context.
