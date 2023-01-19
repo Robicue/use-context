@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { isContext, unforkable, useContext } from "./useContext";
+import { isContext, unforkable, useContext, util } from "./useContext";
 
 describe("useContext hook tests", () => {
   it("fork context", () => {
@@ -58,5 +58,35 @@ describe("useContext hook tests", () => {
     expect(isContext(value)).to.equal(false);
     useContext(value);
     expect(isContext(value)).to.equal(true);
+  });
+
+  it.only("utility hook", () => {
+    const useUtil = util(() => {
+      let counter = 0;
+
+      return {
+        increment() {
+          counter++;
+        },
+
+        getCounter() {
+          return counter;
+        },
+      };
+    });
+
+    const state1 = useUtil();
+    const state2 = useUtil();
+    const state3 = useUtil({});
+
+    expect(state1.getCounter()).to.eq(0);
+    expect(state2.getCounter()).to.eq(0);
+    expect(state3.getCounter()).to.eq(0);
+
+    state1.increment();
+
+    expect(state1.getCounter()).to.eq(1);
+    expect(state2.getCounter()).to.eq(1);
+    expect(state3.getCounter()).to.eq(0);
   });
 });

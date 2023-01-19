@@ -77,6 +77,20 @@ export const buoy = <A extends unknown[], R>(
 };
 
 /**
+ * Creates a utility hook that memorizes the result of the context.
+ * The context is optional here. If not provided, the specified
+ * function itself will be used as context.
+ */
+export const util = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): ((context?: Context, ...args: A) => R) => {
+  return (context, ...args) => {
+    const { use } = useContext(context ?? func);
+    return use(func, ...args);
+  };
+};
+
+/**
  *  Gets the map with forkable states for the specified context
  */
 const getContextMap = (context: Context) => {
