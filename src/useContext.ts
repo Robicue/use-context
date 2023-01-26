@@ -182,7 +182,7 @@ export const useContext = (context: Context = {}) => {
      * of the current context, but newly initialized states, created
      * in the forked context, are not seen by hooks using the current context.
      */
-    fork(forkedContext: Context = { ...context }) {
+    fork(forkedContext: Context = {}) {
       if (contexts.has(forkedContext)) {
         throw new Error("The forked context is already in use");
       }

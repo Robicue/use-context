@@ -60,7 +60,7 @@ describe("useContext hook tests", () => {
     expect(isContext(value)).to.equal(true);
   });
 
-  it.only("utility hook", () => {
+  it("utility hook", () => {
     const useUtil = util(() => {
       let counter = 0;
 
