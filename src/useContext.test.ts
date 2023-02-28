@@ -1,12 +1,12 @@
 import { expect } from "chai";
-import { isContext, unforkable, useContext, util } from "./useContext";
+import { isContext, useContext, util, buoy } from "./useContext";
 
 describe("useContext hook tests", () => {
-  it("fork context", () => {
+  it.only("fork context", () => {
     const iA = () => ({ value: "A" });
     const iB = () => ({ value: "B" });
     const iC = () => ({ value: "C" });
-    const iD = unforkable(() => ({ value: "D" }));
+    const iD = buoy(() => ({ value: "D" }));
 
     const context = useContext();
 
@@ -18,7 +18,9 @@ describe("useContext hook tests", () => {
 
     expect(context.use(iA).value).to.equal("E");
     expect(context.use(iB).value).to.equal("B");
-    expect(context.use(iD).value).to.equal("D");
+    expect(iD(context.context).value).to.equal("D");
+
+    iD(context.context).value = "D1";
 
     // Test forks
 
@@ -30,12 +32,26 @@ describe("useContext hook tests", () => {
     expect(context.isUsed(iC)).to.equal(false);
     expect(context.use(iC).value).to.equal("C");
     expect(context.isUsed(iC)).to.equal(true);
+    expect(context.isInherited(iC)).to.equal(false);
 
-    expect(forkedContext.isUsed(iC)).to.equal(false);
-    expect(forkedContext.use(iC).value).to.equal("C");
     expect(forkedContext.isUsed(iC)).to.equal(true);
+    expect(forkedContext.use(iC).value).to.equal("C");
+    expect(forkedContext.isInherited(iC)).to.equal(true);
 
-    expect(forkedContext.isUsed(iD)).to.equal(false);
+    forkedContext.use(iC).value = "C2";
+
+    expect(context.use(iC).value).to.equal("C2");
+
+    expect(forkedContext.init(iC).value).to.equal("C");
+    expect(forkedContext.isInherited(iC)).to.equal(false);
+
+    forkedContext.use(iC).value = "C3";
+    expect(forkedContext.use(iC).value).to.equal("C3");
+    expect(context.use(iC).value).to.equal("C2");
+
+    iD(forkedContext.context).value = "D3";
+    expect(iD(forkedContext.context).value).to.equal("D3");
+    expect(iD(context.context).value).to.equal("D1");
 
     context.use(iA).value = "F";
     context.use(iC).value = "G";
