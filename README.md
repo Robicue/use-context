@@ -162,7 +162,7 @@ This can, for example, be useful for authentication if you do not want the permi
 ```typescript
 import { Context, useContext } from "@robicue/use-context";
 
-const useAuthState = anchor((username) => ({ currentUser: username }));
+const useAuthState = anchor((_context, username) => ({ currentUser: username }));
 
 export const useAuthentication = (context: Context) => {
   const { use, fork } = useContext(context);

@@ -125,6 +125,12 @@ export const get = <A extends unknown[], R>(
  * in the forked context, are not seen by hooks using the current context.
  */
 export const fork = (context: Context, forkedContext: Context = {}) => {
+  if (context === forkedContext) {
+    throw new Error(
+      "The parent context and the forked context cannot be the same"
+    );
+  }
+
   if (isContext(forkedContext)) {
     throw new Error("The forked context is already in use");
   }

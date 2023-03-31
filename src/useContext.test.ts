@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { isContext, useContext, util, buoy } from "./useContext";
+import { isContext, useContext, util, buoy, fork } from "./useContext";
 
 describe("useContext hook tests", () => {
-  it.only("fork context", () => {
+  it("complex forking context", () => {
     const iA = () => ({ value: "A" });
     const iB = () => ({ value: "B" });
     const iC = () => ({ value: "C" });
@@ -72,7 +72,7 @@ describe("useContext hook tests", () => {
     const value = {};
 
     expect(isContext(value)).to.equal(false);
-    useContext(value);
+    useContext(value).use(() => void 0);
     expect(isContext(value)).to.equal(true);
   });
 
@@ -104,5 +104,39 @@ describe("useContext hook tests", () => {
     expect(state1.getCounter()).to.eq(1);
     expect(state2.getCounter()).to.eq(1);
     expect(state3.getCounter()).to.eq(0);
+  });
+
+  it("cyclic forking is not possible", () => {
+    function test() {
+      const context = {};
+      fork(context, context);
+    }
+
+    expect(test).to.throw(
+      "The parent context and the forked context cannot be the same"
+    );
+  });
+
+  it("non direct cyclic forking is not possible", () => {
+    function test() {
+      const context1 = {};
+      const context2 = {};
+      fork(context1, context2);
+      fork(context2, context1);
+    }
+
+    expect(test).to.throw("The forked context is already in use");
+  });
+
+  it("a context can only be forked once", () => {
+    function test() {
+      const context1 = {};
+      const context2 = {};
+
+      fork(context1, context2);
+      fork(context1, context2);
+    }
+
+    expect(test).to.throw("The forked context is already in use");
   });
 });
