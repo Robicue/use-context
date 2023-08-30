@@ -1,5 +1,14 @@
 import { expect } from "chai";
-import { isContext, useContext, util, buoy, fork } from "./useContext";
+import {
+  anchor,
+  buoy,
+  clone,
+  factory,
+  fork,
+  isContext,
+  useContext,
+  util,
+} from "./useContext";
 
 describe("useContext hook tests", () => {
   it("complex forking context", () => {
@@ -138,5 +147,37 @@ describe("useContext hook tests", () => {
     }
 
     expect(test).to.throw("The forked context is already in use");
+  });
+
+  it("cloned hook has new state", () => {
+    const context = {};
+
+    const hookFunction = () => ({ counter: 1 });
+
+    const stateA = anchor(hookFunction)(context);
+    stateA.counter = 2;
+
+    const stateB = anchor(hookFunction)(context);
+    expect(stateB.counter).to.equal(2);
+
+    const stateC = anchor(clone(hookFunction))(context);
+    expect(stateC.counter).to.equal(1);
+  });
+
+  it("usage of hook factory", () => {
+    const context = {};
+
+    const createHook = factory(() => ({ counter: 1 }));
+    const hookA = createHook();
+
+    const stateA = hookA(context);
+    stateA.counter = 2;
+
+    const stateB = hookA(context);
+    expect(stateB.counter).to.equal(2);
+
+    const hookB = createHook();
+    const stateC = hookB(context);
+    expect(stateC.counter).to.equal(1);
   });
 });

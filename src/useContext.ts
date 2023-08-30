@@ -171,6 +171,26 @@ export const hook = <A extends unknown[], R>(
 };
 
 /**
+ * Creates a clone of a hook function.
+ */
+export const clone = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): ((context: Context, ...args: A) => R) => {
+  return (context, ...args) => {
+    return func(context, ...args);
+  };
+};
+
+/**
+ * Creates an anchor hook factory
+ */
+export const factory = <A extends unknown[], R>(
+  func: (context: Context, ...args: A) => R
+): (() => (context: Context, ...args: A) => R) => {
+  return () => anchor(clone(func));
+};
+
+/**
  * Creates a hook that memorizes the result in the context
  */
 export const anchor = <A extends unknown[], R>(
