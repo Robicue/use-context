@@ -1,11 +1,13 @@
 import { expect } from "chai";
 import {
+  Context,
   anchor,
   buoy,
   clone,
   factory,
   fork,
   isContext,
+  use,
   useContext,
   util,
 } from "./useContext";
@@ -179,5 +181,31 @@ describe("useContext hook tests", () => {
     const hookB = createHook();
     const stateC = hookB(context);
     expect(stateC.counter).to.equal(1);
+  });
+
+  it("async hook usage", async () => {
+    const context = {};
+
+    const hookA = async (_: Context, counter?: number) => ({ counter });
+    const stateA = await use(context, hookA, 4);
+
+    expect(stateA.counter).to.equal(4);
+    stateA.counter = 8;
+
+    const stateB = await use(context, hookA);
+    expect(stateB.counter).to.equal(8);
+  });
+
+  it("async anchor", async () => {
+    const context = {};
+
+    const hookA = anchor(async (_, counter?: number) => ({ counter }));
+    const stateA = await hookA(context, 4);
+
+    expect(stateA.counter).to.equal(4);
+    stateA.counter = 8;
+
+    const stateB = await hookA(context);
+    expect(stateB.counter).to.equal(8);
   });
 });
